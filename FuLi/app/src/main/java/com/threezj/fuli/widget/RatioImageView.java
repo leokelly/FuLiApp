@@ -1,4 +1,4 @@
-package com.threezj.fuli;
+package com.threezj.fuli.widget;
 
 import android.content.Context;
 import android.util.AttributeSet;

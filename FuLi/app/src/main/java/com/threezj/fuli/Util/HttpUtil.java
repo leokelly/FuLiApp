@@ -1,4 +1,4 @@
-package com.threezj.fuli;
+package com.threezj.fuli.Util;
 
 import java.io.BufferedReader;
 import java.io.InputStream;

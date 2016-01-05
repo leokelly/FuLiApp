@@ -1,4 +1,4 @@
-package com.threezj.fuli;
+package com.threezj.fuli.model;
 
 /**
  * Created by Zj on 2015/12/28.

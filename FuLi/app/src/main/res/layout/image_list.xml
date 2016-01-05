@@ -14,14 +14,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.threezj.fuli.RatioImageView
+        <com.threezj.fuli.widget.RatioImageView
             android:id="@+id/image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="fitCenter"
             android:padding="5dp"
             tools:ignore="ContentDescription">
-        </com.threezj.fuli.RatioImageView>
+        </com.threezj.fuli.widget.RatioImageView>
     </LinearLayout>
 
 </android.support.v7.widget.CardView>

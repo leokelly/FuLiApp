@@ -1,10 +1,11 @@
-package com.threezj.fuli;
+package com.threezj.fuli.Util;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.Target;
+import com.threezj.fuli.model.ImageFuli;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
