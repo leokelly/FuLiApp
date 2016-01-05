@@ -5,5 +5,5 @@ package com.threezj.fuli;
  */
 public class ApiUrl {
 
-    public static String gankApiUrl = "http://gank.avosapps.com/api/data/%E7%A6%8F%E5%88%A9/20/1";
+    public static String gankApiUrl = "http://gank.avosapps.com/api/data/%E7%A6%8F%E5%88%A9/";
 }

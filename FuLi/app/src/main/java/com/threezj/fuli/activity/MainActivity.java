@@ -7,6 +7,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.widget.Toast;
 
 import com.threezj.fuli.ApiUrl;
 import com.threezj.fuli.R;
@@ -14,7 +15,6 @@ import com.threezj.fuli.Util.HttpUtil;
 import com.threezj.fuli.Util.ResponseHandleUtil;
 import com.threezj.fuli.adapter.ImageRecyclerViewAdapter;
 import com.threezj.fuli.model.ImageFuli;
-import com.threezj.fuli.widget.EndlessRecyclerOnScrollListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +23,13 @@ import java.util.concurrent.ExecutionException;
 public class MainActivity extends AppCompatActivity {
 
     private StaggeredGridLayoutManager gaggeredGridLayoutManager;
-    private List<ImageFuli> gaggeredList = new ArrayList<ImageFuli>();
+    private List<ImageFuli> imagesList = new ArrayList<ImageFuli>();
     private ImageRecyclerViewAdapter imageRecyclerViewAdapter;
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipeRefreshLayout;
     private boolean onLoading = false;
+    private int loadImageCount = 15;
+    private int loadTimes=1;
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override
@@ -55,46 +57,48 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView.setHasFixedSize(true);
 
+        imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, imagesList);
+        recyclerView.setAdapter(imageRecyclerViewAdapter);
         gaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, 1);
         recyclerView.setLayoutManager(gaggeredGridLayoutManager);
 
+//        recyclerView.addOnScrollListener(new EndlessRecyclerOnScrollListener(gaggeredGridLayoutManager) {
+//            @Override
+//            public void onLoadMore(int current_page) {
+//                imageRecyclerViewAdapter.setHasFooter(true);
+//                getImagesDataFromHttp();
+//            }
+//        });
 
-    }
-
-    private void getImagesDataFromHttp() {
         swipeRefreshLayout.post(new Runnable() {
             @Override
             public void run() {
                 swipeRefreshLayout.setRefreshing(true);
             }
         });
-        HttpUtil.httpRequestToGank(ApiUrl.gankApiUrl, new HttpUtil.HttpUtilCallBack() {
+    }
+
+    private void getImagesDataFromHttp() {
+        HttpUtil.httpRequestToGank(ApiUrl.gankApiUrl+(loadImageCount+5*loadTimes)+"/1" , new HttpUtil.HttpUtilCallBack() {
             @Override
             public void onFinsh(String response) {
                 try {
-                    gaggeredList = ResponseHandleUtil.HandleResponseFromHttp(response, MainActivity.this);
+                    imagesList = ResponseHandleUtil.HandleResponseFromHttp(response, MainActivity.this);
+                    loadTimes++;
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, gaggeredList);
-                        recyclerView.setAdapter(imageRecyclerViewAdapter);
-                        gaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, 1);
-                        recyclerView.setLayoutManager(gaggeredGridLayoutManager);
-
-                        recyclerView.addOnScrollListener(new EndlessRecyclerOnScrollListener(gaggeredGridLayoutManager) {
-                            @Override
-                            public void onLoadMore(int current_page) {
-                                imageRecyclerViewAdapter.setHasFooter(true);
-
-                            }
-                        });
-
+//                        imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, imagesList);
+//                        recyclerView.setAdapter(imageRecyclerViewAdapter);
                         imageRecyclerViewAdapter.notifyDataSetChanged();
+                        imageRecyclerViewAdapter.setHasFooter(false);
+
                         if (swipeRefreshLayout.isRefreshing()) {
                             swipeRefreshLayout.setRefreshing(false);
                         }
@@ -105,6 +109,15 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(Exception e) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, "加载失败！", Toast.LENGTH_SHORT).show();
+                        if (swipeRefreshLayout.isRefreshing()) {
+                            swipeRefreshLayout.setRefreshing(false);
+                        }
+                    }
+                });
 
             }
         });
