@@ -12,6 +12,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.realm.Realm;
+
 /**
  * Created by Zj on 2015/12/28.
  */
@@ -21,6 +23,8 @@ public class ResponseHandleUtil {
         String regEx = "\"url\":\".*?\"";
         Pattern pat = Pattern.compile(regEx);
         Matcher mat = pat.matcher(response);
+        Realm realm = Realm.getInstance(context);
+        realm.beginTransaction();//开启事务
         while (mat.find()) {
             String url = mat.group().substring(7,mat.group().length()-1);
 
@@ -31,11 +35,13 @@ public class ResponseHandleUtil {
                     .get();
             imageFuli.setWidth(bitmap.getWidth());
             imageFuli.setHeight(bitmap.getHeight());
+            //载入数据库
+            realm.copyToRealm(imageFuli);
 
             imageFulis.add(imageFuli);
 
         }
-
+        realm.commitTransaction();//提交事务
         return imageFulis;
     }
 }

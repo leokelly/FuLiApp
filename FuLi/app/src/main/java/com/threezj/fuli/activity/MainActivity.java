@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import io.realm.Realm;
+import io.realm.RealmResults;
+
 public class MainActivity extends AppCompatActivity {
 
     private StaggeredGridLayoutManager gaggeredGridLayoutManager;
@@ -39,8 +42,15 @@ public class MainActivity extends AppCompatActivity {
 
         init();
 
-        getImagesDataFromHttp();
-
+        if(!findFromDb()){
+            swipeRefreshLayout.post(new Runnable() {
+                @Override
+                public void run() {
+                    swipeRefreshLayout.setRefreshing(true);
+                }
+            });
+            getImagesDataFromHttp();
+        }
     }
 
     private void init() {
@@ -51,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+
                 getImagesDataFromHttp();
             }
         });
@@ -70,12 +81,6 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        });
 
-        swipeRefreshLayout.post(new Runnable() {
-            @Override
-            public void run() {
-                swipeRefreshLayout.setRefreshing(true);
-            }
-        });
     }
 
     private void getImagesDataFromHttp() {
@@ -94,9 +99,10 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-//                        imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, imagesList);
-//                        recyclerView.setAdapter(imageRecyclerViewAdapter);
-                        imageRecyclerViewAdapter.notifyDataSetChanged();
+                        imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, imagesList);
+                        recyclerView.setAdapter(imageRecyclerViewAdapter);
+                        gaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, 1);
+                        recyclerView.setLayoutManager(gaggeredGridLayoutManager);
                         imageRecyclerViewAdapter.setHasFooter(false);
 
                         if (swipeRefreshLayout.isRefreshing()) {
@@ -121,6 +127,20 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
 
+    public boolean findFromDb(){
+        Realm realm = Realm.getInstance(this);
+        RealmResults<ImageFuli> images = realm.allObjects(ImageFuli.class);
+        if(images.size()==0){
+            return false;
+        }
+        else{
+            imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, images);
+            recyclerView.setAdapter(imageRecyclerViewAdapter);
+            //imageRecyclerViewAdapter.notifyDataSetChanged();
+            recyclerView.getAdapter().notifyDataSetChanged();
+            return true;
+        }
     }
 }

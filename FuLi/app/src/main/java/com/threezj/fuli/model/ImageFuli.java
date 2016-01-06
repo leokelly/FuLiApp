@@ -1,13 +1,17 @@
 package com.threezj.fuli.model;
 
+import io.realm.RealmObject;
+
 /**
  * Created by Zj on 2015/12/28.
  */
-public class ImageFuli {
+public class ImageFuli extends RealmObject {
     public ImageFuli(String url) {
         this.url = url;
     }
+    public ImageFuli(){
 
+    }
     private String url;
     private int width;
     private int height;
