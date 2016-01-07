@@ -7,6 +7,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.threezj.fuli.ApiUrl;
@@ -15,6 +16,7 @@ import com.threezj.fuli.Util.HttpUtil;
 import com.threezj.fuli.Util.ResponseHandleUtil;
 import com.threezj.fuli.adapter.ImageRecyclerViewAdapter;
 import com.threezj.fuli.model.ImageFuli;
+import com.threezj.fuli.widget.OnRcvScrollListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean onLoading = false;
     private int loadImageCount = 15;
     private int loadTimes=1;
+    private boolean isFirst = true;
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override
@@ -51,6 +54,19 @@ public class MainActivity extends AppCompatActivity {
             });
             getImagesDataFromHttp();
         }
+        Log.d("test", "addScrolListener");
+        if(isFirst){
+            recyclerView.addOnScrollListener(new OnRcvScrollListener(){
+                @Override
+                public void onBottom() {
+                    super.onBottom();
+                    Log.d("test", "onloadMore");
+                    imageRecyclerViewAdapter.setHasFooter(true);
+                    getImagesDataFromHttp();
+                }
+            });
+        }
+
     }
 
     private void init() {
@@ -61,29 +77,19 @@ public class MainActivity extends AppCompatActivity {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-
+                Log.d("test","onRefresh");
                 getImagesDataFromHttp();
             }
         });
 
         recyclerView.setHasFixedSize(true);
-
-        imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, imagesList);
-        recyclerView.setAdapter(imageRecyclerViewAdapter);
         gaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, 1);
         recyclerView.setLayoutManager(gaggeredGridLayoutManager);
-
-//        recyclerView.addOnScrollListener(new EndlessRecyclerOnScrollListener(gaggeredGridLayoutManager) {
-//            @Override
-//            public void onLoadMore(int current_page) {
-//                imageRecyclerViewAdapter.setHasFooter(true);
-//                getImagesDataFromHttp();
-//            }
-//        });
 
     }
 
     private void getImagesDataFromHttp() {
+        Log.d("test","getDataFromHttp");
         HttpUtil.httpRequestToGank(ApiUrl.gankApiUrl+(loadImageCount+5*loadTimes)+"/1" , new HttpUtil.HttpUtilCallBack() {
             @Override
             public void onFinsh(String response) {
@@ -99,10 +105,12 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, imagesList);
-                        recyclerView.setAdapter(imageRecyclerViewAdapter);
-                        gaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, 1);
-                        recyclerView.setLayoutManager(gaggeredGridLayoutManager);
+                        if(isFirst){
+                            imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, imagesList);
+                            recyclerView.setAdapter(imageRecyclerViewAdapter);
+                            isFirst=false;
+                        }
+                        recyclerView.getAdapter().notifyDataSetChanged();
                         imageRecyclerViewAdapter.setHasFooter(false);
 
                         if (swipeRefreshLayout.isRefreshing()) {
@@ -133,13 +141,16 @@ public class MainActivity extends AppCompatActivity {
         Realm realm = Realm.getInstance(this);
         RealmResults<ImageFuli> images = realm.allObjects(ImageFuli.class);
         if(images.size()==0){
+            //realm.close();
             return false;
         }
         else{
+            isFirst=false;
             imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, images);
             recyclerView.setAdapter(imageRecyclerViewAdapter);
-            //imageRecyclerViewAdapter.notifyDataSetChanged();
+
             recyclerView.getAdapter().notifyDataSetChanged();
+            //realm.close();
             return true;
         }
     }

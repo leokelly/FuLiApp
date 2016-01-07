@@ -25,6 +25,7 @@ public class ResponseHandleUtil {
         Matcher mat = pat.matcher(response);
         Realm realm = Realm.getInstance(context);
         realm.beginTransaction();//开启事务
+        realm.clear(ImageFuli.class);
         while (mat.find()) {
             String url = mat.group().substring(7,mat.group().length()-1);
 
