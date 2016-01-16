@@ -16,10 +16,8 @@ import com.threezj.fuli.Util.HttpUtil;
 import com.threezj.fuli.Util.ResponseHandleUtil;
 import com.threezj.fuli.adapter.ImageRecyclerViewAdapter;
 import com.threezj.fuli.model.ImageFuli;
-import com.threezj.fuli.widget.OnRcvScrollListener;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import io.realm.Realm;
@@ -28,7 +26,7 @@ import io.realm.RealmResults;
 public class MainActivity extends AppCompatActivity {
 
     private StaggeredGridLayoutManager gaggeredGridLayoutManager;
-    private List<ImageFuli> imagesList = new ArrayList<ImageFuli>();
+    private ArrayList<ImageFuli> imagesList = new ArrayList<ImageFuli>();
     private ImageRecyclerViewAdapter imageRecyclerViewAdapter;
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipeRefreshLayout;
@@ -55,18 +53,7 @@ public class MainActivity extends AppCompatActivity {
             getImagesDataFromHttp();
         }
         Log.d("test", "addScrolListener");
-        if(isFirst){
-            recyclerView.addOnScrollListener(new OnRcvScrollListener(){
-                @Override
-                public void onBottom() {
-                    super.onBottom();
-                    Log.d("test", "onloadMore");
-                    imageRecyclerViewAdapter.setHasFooter(true);
-                    getImagesDataFromHttp();
-                }
-            });
-        }
-
+        recyclerView.addOnScrollListener(getOnBottomListener(gaggeredGridLayoutManager));
     }
 
     private void init() {
@@ -77,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                Log.d("test","onRefresh");
+                Log.d("test", "onRefresh");
                 getImagesDataFromHttp();
             }
         });
@@ -85,16 +72,18 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         gaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, 1);
         recyclerView.setLayoutManager(gaggeredGridLayoutManager);
+        imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, imagesList);
+        recyclerView.setAdapter(imageRecyclerViewAdapter);
 
     }
 
     private void getImagesDataFromHttp() {
         Log.d("test","getDataFromHttp");
-        HttpUtil.httpRequestToGank(ApiUrl.gankApiUrl+(loadImageCount+5*loadTimes)+"/1" , new HttpUtil.HttpUtilCallBack() {
+        HttpUtil.httpRequestToGank(ApiUrl.gankApiUrl + (loadImageCount + 5 * loadTimes) + "/1", new HttpUtil.HttpUtilCallBack() {
             @Override
             public void onFinsh(String response) {
                 try {
-                    imagesList = ResponseHandleUtil.HandleResponseFromHttp(response, MainActivity.this);
+                    ResponseHandleUtil.HandleResponseFromHttp(response, MainActivity.this,imagesList);
                     loadTimes++;
                 } catch (ExecutionException e) {
                     e.printStackTrace();
@@ -105,13 +94,9 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if(isFirst){
-                            imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, imagesList);
-                            recyclerView.setAdapter(imageRecyclerViewAdapter);
-                            isFirst=false;
-                        }
+
                         recyclerView.getAdapter().notifyDataSetChanged();
-                        imageRecyclerViewAdapter.setHasFooter(false);
+
 
                         if (swipeRefreshLayout.isRefreshing()) {
                             swipeRefreshLayout.setRefreshing(false);
@@ -154,4 +139,24 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
     }
+
+    private static final int PRELOAD_SIZE = 6;
+    private boolean mIsFirstTimeTouchBottom = true;
+    private int mPage = 1;
+
+    private RecyclerView.OnScrollListener getOnBottomListener(final StaggeredGridLayoutManager layoutManager) {
+        return new RecyclerView.OnScrollListener() {
+            @Override public void onScrolled(RecyclerView rv, int dx, int dy) {
+                boolean isBottom = layoutManager.findLastCompletelyVisibleItemPositions(new int[2])[1] >= imageRecyclerViewAdapter.getItemCount() - PRELOAD_SIZE;
+                if (!swipeRefreshLayout.isRefreshing() && isBottom) {
+
+                    swipeRefreshLayout.setRefreshing(true);
+                    mPage += 1;
+                    getImagesDataFromHttp();
+
+                }
+            }
+        };
+    }
+
 }

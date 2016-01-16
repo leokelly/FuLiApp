@@ -18,8 +18,8 @@ import io.realm.Realm;
  * Created by Zj on 2015/12/28.
  */
 public class ResponseHandleUtil {
-    public static ArrayList<ImageFuli> HandleResponseFromHttp(String response,Context context) throws ExecutionException, InterruptedException {
-        ArrayList<ImageFuli> imageFulis =new ArrayList<ImageFuli>();
+    public static void HandleResponseFromHttp(String response, Context context, ArrayList<ImageFuli> imagesList) throws ExecutionException, InterruptedException {
+
         String regEx = "\"url\":\".*?\"";
         Pattern pat = Pattern.compile(regEx);
         Matcher mat = pat.matcher(response);
@@ -39,10 +39,10 @@ public class ResponseHandleUtil {
             //载入数据库
             realm.copyToRealm(imageFuli);
 
-            imageFulis.add(imageFuli);
+            imagesList.add(imageFuli);
 
         }
         realm.commitTransaction();//提交事务
-        return imageFulis;
+
     }
 }
