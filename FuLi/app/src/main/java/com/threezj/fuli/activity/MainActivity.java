@@ -14,6 +14,7 @@ import com.threezj.fuli.ApiUrl;
 import com.threezj.fuli.R;
 import com.threezj.fuli.Util.HttpUtil;
 import com.threezj.fuli.Util.ResponseHandleUtil;
+import com.threezj.fuli.Util.SharedPreferencesUtil;
 import com.threezj.fuli.adapter.ImageRecyclerViewAdapter;
 import com.threezj.fuli.model.ImageFuli;
 
@@ -26,14 +27,17 @@ import io.realm.RealmResults;
 public class MainActivity extends AppCompatActivity {
 
     private StaggeredGridLayoutManager gaggeredGridLayoutManager;
-    private ArrayList<ImageFuli> imagesList = new ArrayList<ImageFuli>();
+    private ArrayList<ImageFuli> imagesList = new ArrayList<>();
     private ImageRecyclerViewAdapter imageRecyclerViewAdapter;
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipeRefreshLayout;
-    private boolean onLoading = false;
-    private int loadImageCount = 15;
-    private int loadTimes=1;
+
     private boolean isFirst = true;
+    private String jsonResponseFromGank;
+    private final int LOAD_IMAGE_COUNT = 1000;
+    private final int ONCE_LOAD_NUMBER = 10;
+    private int currentImagePosition;
+
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override
@@ -57,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void init() {
+
+        currentImagePosition=SharedPreferencesUtil.getCurrentImagePosition(this);
+
         recyclerView = (RecyclerView)findViewById(R.id.content);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.refresher);
         swipeRefreshLayout.setColorSchemeColors(R.color.colorPrimary);
@@ -78,53 +85,66 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getImagesDataFromHttp() {
-        Log.d("test","getDataFromHttp");
-        HttpUtil.httpRequestToGank(ApiUrl.gankApiUrl + (loadImageCount + 5 * loadTimes) + "/1", new HttpUtil.HttpUtilCallBack() {
+        Log.d("test", "getDataFromHttp");
+        if(jsonResponseFromGank==null){
+            HttpUtil.httpRequestToGank(this,ApiUrl.gankApiUrl + (LOAD_IMAGE_COUNT) + "/1", new HttpUtil.HttpUtilCallBack() {
+                @Override
+                public void onFinsh(String response) {
+                    jsonResponseFromGank=response;
+                    handleResponse();
+                }
+
+                @Override
+                public void onError(Exception e) {
+
+                    Toast.makeText(MainActivity.this, "加载失败！", Toast.LENGTH_SHORT).show();
+                    if (swipeRefreshLayout.isRefreshing()) {
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                }
+            });
+        }
+        else{
+            handleResponse();
+        }
+    }
+
+    private void handleResponse() {
+        new Thread(new Runnable() {
             @Override
-            public void onFinsh(String response) {
+            public void run() {
                 try {
-                    ResponseHandleUtil.HandleResponseFromHttp(response, MainActivity.this,imagesList);
-                    loadTimes++;
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    ResponseHandleUtil.HandleResponseFromHttp(jsonResponseFromGank, MainActivity.this, imagesList, currentImagePosition);
+                    currentImagePosition += ONCE_LOAD_NUMBER;
+                } catch (ExecutionException | InterruptedException e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "加载失败！", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
 
-                        recyclerView.getAdapter().notifyDataSetChanged();
-
-
+                        //recyclerView.getAdapter().notifyDataSetChanged();
+                        recyclerView.getAdapter().notifyItemRangeChanged(currentImagePosition - ONCE_LOAD_NUMBER, ONCE_LOAD_NUMBER);
                         if (swipeRefreshLayout.isRefreshing()) {
                             swipeRefreshLayout.setRefreshing(false);
                         }
                     }
                 });
-
             }
+        }).start();
 
-            @Override
-            public void onError(Exception e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MainActivity.this, "加载失败！", Toast.LENGTH_SHORT).show();
-                        if (swipeRefreshLayout.isRefreshing()) {
-                            swipeRefreshLayout.setRefreshing(false);
-                        }
-                    }
-                });
-
-            }
-        });
     }
 
     public boolean findFromDb(){
         Realm realm = Realm.getInstance(this);
         RealmResults<ImageFuli> images = realm.allObjects(ImageFuli.class);
+
         if(images.size()==0){
             //realm.close();
             return false;
@@ -133,25 +153,20 @@ public class MainActivity extends AppCompatActivity {
             isFirst=false;
             imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, images);
             recyclerView.setAdapter(imageRecyclerViewAdapter);
-
             recyclerView.getAdapter().notifyDataSetChanged();
-            //realm.close();
             return true;
         }
     }
 
     private static final int PRELOAD_SIZE = 6;
-    private boolean mIsFirstTimeTouchBottom = true;
-    private int mPage = 1;
+
 
     private RecyclerView.OnScrollListener getOnBottomListener(final StaggeredGridLayoutManager layoutManager) {
         return new RecyclerView.OnScrollListener() {
             @Override public void onScrolled(RecyclerView rv, int dx, int dy) {
                 boolean isBottom = layoutManager.findLastCompletelyVisibleItemPositions(new int[2])[1] >= imageRecyclerViewAdapter.getItemCount() - PRELOAD_SIZE;
                 if (!swipeRefreshLayout.isRefreshing() && isBottom) {
-
                     swipeRefreshLayout.setRefreshing(true);
-                    mPage += 1;
                     getImagesDataFromHttp();
 
                 }
@@ -159,4 +174,9 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        SharedPreferencesUtil.saveCurrentImagePosition(this, currentImagePosition);
+    }
 }
