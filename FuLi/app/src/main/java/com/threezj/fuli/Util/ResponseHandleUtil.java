@@ -48,7 +48,7 @@ public class ResponseHandleUtil {
             e.printStackTrace();
         }
         realm.commitTransaction();//提交事务
-
+        realm.close();
     }
 
 }

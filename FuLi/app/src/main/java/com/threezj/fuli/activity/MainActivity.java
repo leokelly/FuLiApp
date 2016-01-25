@@ -1,13 +1,16 @@
 package com.threezj.fuli.activity;
 
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.threezj.fuli.ApiUrl;
@@ -32,12 +35,11 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipeRefreshLayout;
 
-    private boolean isFirst = true;
     private String jsonResponseFromGank;
     private final int LOAD_IMAGE_COUNT = 1000;
     private final int ONCE_LOAD_NUMBER = 10;
     private int currentImagePosition;
-
+    Realm realm;
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void init() {
 
+        realm = Realm.getInstance(this);
         currentImagePosition=SharedPreferencesUtil.getCurrentImagePosition(this);
 
         recyclerView = (RecyclerView)findViewById(R.id.content);
@@ -79,7 +82,18 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         gaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, 1);
         recyclerView.setLayoutManager(gaggeredGridLayoutManager);
-        imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, imagesList);
+        imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, imagesList){
+            @Override
+            protected void onItemClick(View v, int position) {
+                Intent intent = new Intent(MainActivity.this, ImageViewerActivity.class);
+                intent.putExtra("CURRENT_INDEX",position);
+                ActivityOptionsCompat options = ActivityOptionsCompat
+                        .makeSceneTransitionAnimation(MainActivity.this, v, imageRecyclerViewAdapter.getImage(position).getUrl());
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    startActivity(intent,options.toBundle());
+                }
+            }
+        };
         recyclerView.setAdapter(imageRecyclerViewAdapter);
 
     }
@@ -142,17 +156,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public boolean findFromDb(){
-        Realm realm = Realm.getInstance(this);
         RealmResults<ImageFuli> images = realm.allObjects(ImageFuli.class);
 
         if(images.size()==0){
-            //realm.close();
             return false;
         }
         else{
-            isFirst=false;
-            imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(MainActivity.this, images);
-            recyclerView.setAdapter(imageRecyclerViewAdapter);
+            for(ImageFuli imageFuli : images){
+                imagesList.add(imageFuli);
+            }
             recyclerView.getAdapter().notifyDataSetChanged();
             return true;
         }
@@ -177,6 +189,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        realm.close();
         SharedPreferencesUtil.saveCurrentImagePosition(this, currentImagePosition);
+
     }
 }

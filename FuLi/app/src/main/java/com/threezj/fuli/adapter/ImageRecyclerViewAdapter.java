@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Created by Zj on 2015/12/28.
  */
-public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
+public abstract class ImageRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
     private List<ImageFuli> images;
     private Context context;
@@ -57,11 +57,23 @@ public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
         return this.images.size();
     }
 
+    protected abstract void onItemClick(View v, int position);
+
+    public ImageFuli getImage(int position) {
+        return images.get(position);
+    }
+
     public  class ImageViewHolder extends RecyclerView.ViewHolder {
         private RatioImageView imageView;
         public ImageViewHolder(View itemView) {
             super(itemView);
             imageView = (RatioImageView) itemView.findViewById(R.id.image);
+            imageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onItemClick(v, getAdapterPosition());
+                }
+            });
         }
     }
 }
