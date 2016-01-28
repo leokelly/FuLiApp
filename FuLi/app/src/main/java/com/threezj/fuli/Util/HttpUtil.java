@@ -13,26 +13,30 @@ import com.android.volley.toolbox.Volley;
  */
 public class HttpUtil {
 
-    public static void httpRequestToGank(Context context,final String address, final HttpUtilCallBack httpUtilCallBack){
-        RequestQueue mQueue = Volley.newRequestQueue(context);
+    private static RequestQueue mQueue;
 
-        Response.Listener<String> requestToGankListener = new Response.Listener<String>() {
+    public static void httpRequest(Context context, final String address, final HttpUtilCallBack httpUtilCallBack){
+        if (mQueue==null) mQueue = Volley.newRequestQueue(context);
+
+        Response.Listener<String> requestListener = new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 httpUtilCallBack.onFinsh(response);
             }
         };
-        Response.ErrorListener requestToGankErrorListener = new Response.ErrorListener() {
+        Response.ErrorListener requestErrorListener = new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 httpUtilCallBack.onError(error);
             }
         };
 
-        StringRequest requestToGank = new StringRequest(address, requestToGankListener, requestToGankErrorListener);
+        StringRequest stringRequest = new StringRequest(address, requestListener, requestErrorListener);
 
-        mQueue.add(requestToGank);
+        mQueue.add(stringRequest);
     }
+
+
 
 
     public interface HttpUtilCallBack {
