@@ -32,4 +32,5 @@ dependencies {
     compile 'com.google.code.gson:gson:2.5'
     compile 'io.realm:realm-android:0.87.0'
     compile 'eu.the4thfloor.volley:com.android.volley:2015.05.28'
+    compile 'com.astuetz:pagerslidingtabstrip:1.0.1'
 }
