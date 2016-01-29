@@ -23,18 +23,18 @@ public class ImageViewerActivity extends AppCompatActivity  {
     private RealmResults<ImageFuli> images;
     private int currentIndex;
     private ExtendedViewPager mViewPager;
-
+    private int type;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_viewpager);
-
         mViewPager = (ExtendedViewPager) findViewById(R.id.view_pager);
 
         currentIndex = getIntent().getIntExtra("CURRENT_INDEX", 0);
+        type = getIntent().getIntExtra("TYPE",0);
 
         realm=Realm.getInstance(this);
-        images=realm.allObjects(ImageFuli.class);
+        images=realm.where(ImageFuli.class).equalTo("type",type).findAll();
 
         mViewPager.setAdapter(new PagerAdapter(getSupportFragmentManager()));
 

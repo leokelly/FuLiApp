@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.TypedValue;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.threezj.fuli.Fragment.PageFragment;
@@ -31,13 +32,16 @@ public class MainActivity extends AppCompatActivity {
         pagerSlidingTabStrip = (PagerSlidingTabStrip) findViewById(R.id.tab_indicator);
         pagerSlidingTabStrip.setViewPager(mainViewPager);
 
+        //指示条颜色
+        pagerSlidingTabStrip.setIndicatorColor(R.color.blue_500);
+        //指示条高度
+        pagerSlidingTabStrip.setIndicatorHeight((int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 3, getResources().getDisplayMetrics()));
     }
 
 
 
     public class SampleFragmentPagerAdapter extends FragmentPagerAdapter {
-        final int PAGE_COUNT = 3;
-        private String tabTitles[] = new String[] { "Tab1", "Tab2", "Tab3" };
+        private String tabTitles[] = new String[] { "Gank美女", "豆瓣所有", "大胸妹", "小翘臀", "黑丝袜", "美图控", "有颜值"};
 
         public SampleFragmentPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -45,12 +49,12 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return PAGE_COUNT;
+            return tabTitles.length;
         }
 
         @Override
         public Fragment getItem(int position) {
-            return PageFragment.newInstance(position + 1);
+            return PageFragment.newInstance(position);
         }
 
         @Override

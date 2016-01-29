@@ -3,11 +3,13 @@ package com.threezj.fuli.Fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +24,8 @@ import com.threezj.fuli.activity.ImageViewerActivity;
 import com.threezj.fuli.adapter.ImageRecyclerViewAdapter;
 import com.threezj.fuli.model.ImageFuli;
 
-import java.util.ArrayList;
+import org.json.JSONException;
+
 import java.util.concurrent.ExecutionException;
 
 import io.realm.Realm;
@@ -34,12 +37,17 @@ import io.realm.RealmResults;
 public class PageFragment extends Fragment {
 
     private StaggeredGridLayoutManager gaggeredGridLayoutManager;
-    private ArrayList<ImageFuli> imagesList = new ArrayList<>();
+
     private ImageRecyclerViewAdapter imageRecyclerViewAdapter;
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipeRefreshLayout;
 
-    private String jsonResponseFromGank;
+    private RealmResults<ImageFuli> images;
+
+    private final int PRELOAD_SIZE = 6;
+    private int mPage = 1;
+
+    private String httpResponse;
     private final int LOAD_IMAGE_COUNT = 1000;
     private final int ONCE_LOAD_NUMBER = 20;
     private int currentImagePosition;
@@ -50,7 +58,13 @@ public class PageFragment extends Fragment {
 
     private final int REQUEST_TO_GANK = 0;
     private final int REQUEST_TO_DOUBAN = 1;
+    private final int REQUEST_TO_DOUBAN_DAXIONG = 2;
+    private final int REQUEST_TO_DOUBAN_QIAOTUN = 3;
+    private final int REQUEST_TO_DOUBAN_HEISI = 4;
+    private final int REQUEST_TO_DOUBAN_MEITUI = 5;
+    private final int REQUEST_TO_YANZHI = 6;
     private int TYPE = REQUEST_TO_GANK;
+
 
     public static PageFragment newInstance(int type) {
         Bundle args = new Bundle();
@@ -65,7 +79,7 @@ public class PageFragment extends Fragment {
         super.onCreate(savedInstanceState);
         TYPE = getArguments().getInt(TPEY_ARGS_KEY);
         realm = Realm.getInstance(getActivity());
-        currentImagePosition= SharedPreferencesUtil.getCurrentImagePosition(getActivity());
+        currentImagePosition= SharedPreferencesUtil.getCurrentImagePosition(getActivity(),TYPE);
     }
 
     @Override
@@ -74,6 +88,8 @@ public class PageFragment extends Fragment {
         recyclerView = (RecyclerView)view.findViewById(R.id.content);
         swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresher);
         swipeRefreshLayout.setColorSchemeColors(R.color.colorPrimary);
+
+
         return view;
     }
 
@@ -82,7 +98,7 @@ public class PageFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         init();
 
-        if(!findFromDb()){
+        if(images.isEmpty()){
             swipeRefreshLayout.post(new Runnable() {
                 @Override
                 public void run() {
@@ -101,18 +117,26 @@ public class PageFragment extends Fragment {
             @Override
             public void onRefresh() {
                 Log.d("test", "onRefresh");
+                isFirst=true;
+                currentImagePosition = 0;
+                mPage = 1;
+                realm.clear(ImageFuli.class);
                 preHttpRequest();
             }
         });
 
+        images= realm.where(ImageFuli.class)
+                .equalTo("type", TYPE).findAll();
+
         recyclerView.setHasFixedSize(true);
         gaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, 1);
         recyclerView.setLayoutManager(gaggeredGridLayoutManager);
-        imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(getActivity(), imagesList){
+        imageRecyclerViewAdapter = new ImageRecyclerViewAdapter(getActivity(), images){
             @Override
             protected void onItemClick(View v, int position) {
                 Intent intent = new Intent(getActivity(), ImageViewerActivity.class);
                 intent.putExtra("CURRENT_INDEX",position);
+                intent.putExtra("TYPE",TYPE);
                 startActivity(intent);
             }
         };
@@ -122,38 +146,63 @@ public class PageFragment extends Fragment {
 
     private void preHttpRequest(){
         String url = "";
+        HttpUtil.HttpUtilCallBack httpUtilCallBack=null;
         switch (TYPE){
             case REQUEST_TO_GANK:
                 url = ApiUrl.gankApiUrl + (LOAD_IMAGE_COUNT) + "/1";
-                getImagesDataFromHttp(url);
                 break;
             case REQUEST_TO_DOUBAN:
+                url= ApiUrl.DouBanAllUrl + mPage;
+                break;
+            case REQUEST_TO_DOUBAN_DAXIONG:
+                url= ApiUrl.DouBanDaXiongUrl + mPage;
+                break;
+            case REQUEST_TO_DOUBAN_QIAOTUN:
+                url= ApiUrl.DouBanXiaoQiaoTunUrl + mPage;
+                break;
+            case REQUEST_TO_DOUBAN_HEISI:
+                url= ApiUrl.DouBanHeiSiWaTunUrl + mPage;
+                break;
+            case REQUEST_TO_DOUBAN_MEITUI:
+                url= ApiUrl.DouBanMeiTuiUrl + mPage;
+                break;
+            case REQUEST_TO_YANZHI:
+                url= ApiUrl.DouBanYanZhiUrl + mPage;
                 break;
             default:
                 break;
         }
+        httpUtilCallBack = getHttpUtilCallBack();
+        getImagesDataFromHttp(url, httpUtilCallBack);
     }
 
-    private void getImagesDataFromHttp(String url) {
+    @NonNull
+    private HttpUtil.HttpUtilCallBack getHttpUtilCallBack() {
 
-        if(isFirst){
-            HttpUtil.httpRequest(getActivity(), url, new HttpUtil.HttpUtilCallBack() {
-                @Override
-                public void onFinsh(String response) {
-                    jsonResponseFromGank = response;
-                    isFirst = false;
-                    handleResponse();
+        return new HttpUtil.HttpUtilCallBack() {
+            @Override
+            public void onFinsh(String response) {
+                httpResponse = response;
+                isFirst = false;
+                handleResponse();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                e.printStackTrace();
+                Toast.makeText(getActivity(), "加载失败！", Toast.LENGTH_SHORT).show();
+                if (swipeRefreshLayout.isRefreshing()) {
+                    swipeRefreshLayout.setRefreshing(false);
                 }
+            }
+        };
 
-                @Override
-                public void onError(Exception e) {
+    }
 
-                    Toast.makeText(getActivity(), "加载失败！", Toast.LENGTH_SHORT).show();
-                    if (swipeRefreshLayout.isRefreshing()) {
-                        swipeRefreshLayout.setRefreshing(false);
-                    }
-                }
-            });
+    private void getImagesDataFromHttp(String url, HttpUtil.HttpUtilCallBack httpUtilCallBack) {
+        Log.d("test","load form http");
+        if(isFirst || TYPE != REQUEST_TO_GANK){
+            HttpUtil.httpRequest(getActivity(), url,httpUtilCallBack);
         }
         else{
             handleResponse();
@@ -165,9 +214,20 @@ public class PageFragment extends Fragment {
             @Override
             public void run() {
                 try {
-                    ResponseHandleUtil.HandleResponseFromHttp(jsonResponseFromGank, getActivity(), imagesList, currentImagePosition);
-                    currentImagePosition += ONCE_LOAD_NUMBER;
-                } catch (ExecutionException | InterruptedException e) {
+                    switch (TYPE){
+                        case REQUEST_TO_GANK:
+                            ResponseHandleUtil.HandleGankResponseFromHttp(getActivity(),httpResponse,currentImagePosition,ONCE_LOAD_NUMBER,TYPE);
+                            currentImagePosition += ONCE_LOAD_NUMBER;
+                            break;
+                        default:
+                            ResponseHandleUtil.HandleDoubanResponseFromHttp(getActivity(),httpResponse,TYPE);
+                            currentImagePosition = mPage * ONCE_LOAD_NUMBER;
+                            break;
+
+                    }
+
+                } catch (ExecutionException | InterruptedException |JSONException e) {
+                    e.printStackTrace();
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -181,7 +241,10 @@ public class PageFragment extends Fragment {
                     public void run() {
 
                         //recyclerView.getAdapter().notifyDataSetChanged();
-                        recyclerView.getAdapter().notifyItemRangeChanged(currentImagePosition - ONCE_LOAD_NUMBER, ONCE_LOAD_NUMBER);
+                        if(currentImagePosition - ONCE_LOAD_NUMBER - 1>0)
+                            recyclerView.getAdapter().notifyItemRangeChanged(currentImagePosition - ONCE_LOAD_NUMBER - 1, ONCE_LOAD_NUMBER);
+                        else
+                            recyclerView.getAdapter().notifyDataSetChanged();
                         if (swipeRefreshLayout.isRefreshing()) {
                             swipeRefreshLayout.setRefreshing(false);
                         }
@@ -192,30 +255,13 @@ public class PageFragment extends Fragment {
 
     }
 
-    public boolean findFromDb(){
-        RealmResults<ImageFuli> images = realm.allObjects(ImageFuli.class);
-
-        if(images.size()==0){
-            return false;
-        }
-        else{
-            for(ImageFuli imageFuli : images){
-                imagesList.add(imageFuli);
-            }
-            recyclerView.getAdapter().notifyDataSetChanged();
-            return true;
-        }
-    }
-
-    private static final int PRELOAD_SIZE = 6;
-
-
     private RecyclerView.OnScrollListener getOnBottomListener(final StaggeredGridLayoutManager layoutManager) {
         return new RecyclerView.OnScrollListener() {
             @Override public void onScrolled(RecyclerView rv, int dx, int dy) {
                 boolean isBottom = layoutManager.findLastCompletelyVisibleItemPositions(new int[2])[1] >= imageRecyclerViewAdapter.getItemCount() - PRELOAD_SIZE;
                 if (!swipeRefreshLayout.isRefreshing() && isBottom) {
                     swipeRefreshLayout.setRefreshing(true);
+                    mPage++;
                     preHttpRequest();
 
                 }
@@ -225,9 +271,8 @@ public class PageFragment extends Fragment {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         realm.close();
-        SharedPreferencesUtil.saveCurrentImagePosition(getActivity(), currentImagePosition);
-
+        SharedPreferencesUtil.saveCurrentImagePosition(getActivity(), currentImagePosition,TYPE);
+        super.onDestroy();
     }
 }

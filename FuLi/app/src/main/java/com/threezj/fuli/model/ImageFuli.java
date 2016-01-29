@@ -6,6 +6,7 @@ import io.realm.RealmObject;
  * Created by Zj on 2015/12/28.
  */
 public class ImageFuli extends RealmObject {
+
     public ImageFuli(String url) {
         this.url = url;
     }
@@ -15,8 +16,7 @@ public class ImageFuli extends RealmObject {
     private String url;
     private int width;
     private int height;
-
-
+    private int type  ;  // 0 表示gank，1表示豆瓣
 
     public String getUrl() {
         return url;
@@ -40,5 +40,13 @@ public class ImageFuli extends RealmObject {
 
     public void setHeight(int height) {
         this.height = height;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
     }
 }

@@ -15,17 +15,17 @@ public class SharedPreferencesUtil {
         return PreferenceManager.getDefaultSharedPreferences(context);
     }
 
-    public static void saveCurrentImagePosition(Context context,int currentImagePosition){
+    public static void saveCurrentImagePosition(Context context,int currentImagePosition,int type){
         SharedPreferences.Editor editor = getSharePreferences(context).edit();
-        editor.putInt(CURRENT_IMAGE_KEY, currentImagePosition);
+        editor.putInt(CURRENT_IMAGE_KEY+type, currentImagePosition);
         editor.commit();
     }
 
-    public static int getCurrentImagePosition(Context context){
+    public static int getCurrentImagePosition(Context context,int type){
 
         SharedPreferences prefs= getSharePreferences(context);
 
-        int currentImagePosition = prefs.getInt(CURRENT_IMAGE_KEY,0);
+        int currentImagePosition = prefs.getInt(CURRENT_IMAGE_KEY+type,0);
         return  currentImagePosition;
     }
 }
