@@ -42,7 +42,7 @@ public abstract class ImageRecyclerViewAdapter extends RecyclerView.Adapter<Recy
 
         ImageViewHolder imageViewHolder = (ImageViewHolder) holder;
         ImageFuli imageFuli= images.get(position);
-        imageViewHolder.imageView.setOriginalSize(imageFuli.getWidth(), imageFuli.getHeight());
+        imageViewHolder.imageView.setOriginalSize(100, 100);
         Glide.with(context)
                 .load(imageFuli.getUrl())
                 .diskCacheStrategy(DiskCacheStrategy.ALL)

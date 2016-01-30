@@ -14,8 +14,7 @@ public class ImageFuli extends RealmObject {
 
     }
     private String url;
-    private int width;
-    private int height;
+
     private int type  ;  // 0 表示gank，1表示豆瓣
 
     public String getUrl() {
@@ -24,22 +23,6 @@ public class ImageFuli extends RealmObject {
 
     public void setUrl(String url) {
         this.url = url;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
     }
 
     public int getType() {

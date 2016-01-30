@@ -1,10 +1,8 @@
 package com.threezj.fuli.Util;
 
 import android.content.Context;
-import android.graphics.Bitmap;
+import android.util.Log;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.Target;
 import com.threezj.fuli.model.ImageFuli;
 
 import org.json.JSONArray;
@@ -37,11 +35,11 @@ public class ResponseHandleUtil {
             String url = jsonObject.getString("url");
 
             ImageFuli imageFuli =new ImageFuli(url);
-            Bitmap bitmap = Glide.with(context).load(imageFuli.getUrl()).asBitmap().thumbnail(0.1f)
-                    .into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
-                    .get();
-            imageFuli.setWidth(bitmap.getWidth());
-            imageFuli.setHeight(bitmap.getHeight());
+//            Bitmap bitmap = Glide.with(context).load(imageFuli.getUrl()).asBitmap().thumbnail(0.1f)
+//                    .into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+//                    .get();
+//            imageFuli.setWidth(bitmap.getWidth());
+//            imageFuli.setHeight(bitmap.getHeight());
             imageFuli.setType(type);
             realm.copyToRealm(imageFuli);
 
@@ -52,6 +50,7 @@ public class ResponseHandleUtil {
     }
 
     public static void HandleDoubanResponseFromHttp(Context context, String httpResponse,int type) throws ExecutionException, InterruptedException {
+        Log.d("http","http"+type);
         Realm realm = Realm.getInstance(context);
         realm.beginTransaction();//开启事务
         Document document = Jsoup.parse(httpResponse);
@@ -59,11 +58,11 @@ public class ResponseHandleUtil {
         for (Element e :elements){
             String url = e.attr("src");
             ImageFuli imageFuli =new ImageFuli(url);
-            Bitmap bitmap = Glide.with(context).load(imageFuli.getUrl()).asBitmap().thumbnail(0.1f)
-                    .into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
-                    .get();
-            imageFuli.setWidth(bitmap.getWidth());
-            imageFuli.setHeight(bitmap.getHeight());
+//            Bitmap bitmap = Glide.with(context).load(imageFuli.getUrl()).asBitmap().thumbnail(0.1f)
+//                    .into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+//                    .get();
+//            imageFuli.setWidth(bitmap.getWidth());
+//            imageFuli.setHeight(bitmap.getHeight());
             imageFuli.setType(type);
             realm.copyToRealm(imageFuli);
         }

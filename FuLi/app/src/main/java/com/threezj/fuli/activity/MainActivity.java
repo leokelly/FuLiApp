@@ -14,6 +14,8 @@ import com.astuetz.PagerSlidingTabStrip;
 import com.threezj.fuli.Fragment.PageFragment;
 import com.threezj.fuli.R;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
 
@@ -28,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mainViewPager = (ViewPager) findViewById(R.id.main_viewPager);
+        mainViewPager.setOffscreenPageLimit(1);
         mainViewPager.setAdapter(new SampleFragmentPagerAdapter(getSupportFragmentManager()));
         pagerSlidingTabStrip = (PagerSlidingTabStrip) findViewById(R.id.tab_indicator);
         pagerSlidingTabStrip.setViewPager(mainViewPager);
@@ -43,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
     public class SampleFragmentPagerAdapter extends FragmentPagerAdapter {
         private String tabTitles[] = new String[] { "Gank美女", "豆瓣所有", "大胸妹", "小翘臀", "黑丝袜", "美图控", "有颜值"};
 
+        private ArrayList<Fragment> fragments = new ArrayList<Fragment>();
+
         public SampleFragmentPagerAdapter(FragmentManager fm) {
             super(fm);
         }
@@ -54,7 +59,9 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
+            //if(fragments.size()<=position) fragments.add(PageFragment.newInstance(position));
             return PageFragment.newInstance(position);
+            //return fragments.get(position);
         }
 
         @Override

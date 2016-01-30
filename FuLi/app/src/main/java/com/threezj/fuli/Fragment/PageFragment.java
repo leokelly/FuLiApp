@@ -9,7 +9,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,7 +51,8 @@ public class PageFragment extends Fragment {
     private final int ONCE_LOAD_NUMBER = 20;
     private int currentImagePosition;
     private Realm realm;
-    private boolean isFirst = true;
+    private boolean isFirstRequestToGank = true;
+    private boolean isFirstRequestToHttp = true;
 
     private static final String TPEY_ARGS_KEY = "TYPE_KEY";
 
@@ -79,7 +79,6 @@ public class PageFragment extends Fragment {
         super.onCreate(savedInstanceState);
         TYPE = getArguments().getInt(TPEY_ARGS_KEY);
         realm = Realm.getInstance(getActivity());
-        currentImagePosition= SharedPreferencesUtil.getCurrentImagePosition(getActivity(),TYPE);
     }
 
     @Override
@@ -88,8 +87,7 @@ public class PageFragment extends Fragment {
         recyclerView = (RecyclerView)view.findViewById(R.id.content);
         swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresher);
         swipeRefreshLayout.setColorSchemeColors(R.color.colorPrimary);
-
-
+        currentImagePosition= SharedPreferencesUtil.getCurrentImagePosition(getActivity(), TYPE);
         return view;
     }
 
@@ -105,7 +103,11 @@ public class PageFragment extends Fragment {
                     swipeRefreshLayout.setRefreshing(true);
                 }
             });
-            preHttpRequest();
+            if(isFirstRequestToHttp){
+                isFirstRequestToHttp = false;
+                preHttpRequest();
+            }
+
         }
 
         recyclerView.addOnScrollListener(getOnBottomListener(gaggeredGridLayoutManager));
@@ -113,17 +115,21 @@ public class PageFragment extends Fragment {
 
     private void init() {
 
+
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 Log.d("test", "onRefresh");
-                isFirst=true;
+                isFirstRequestToGank =true;
                 currentImagePosition = 0;
                 mPage = 1;
+                realm.beginTransaction();
                 realm.clear(ImageFuli.class);
+                realm.commitTransaction();
                 preHttpRequest();
             }
         });
+
 
         images= realm.where(ImageFuli.class)
                 .equalTo("type", TYPE).findAll();
@@ -183,7 +189,7 @@ public class PageFragment extends Fragment {
             @Override
             public void onFinsh(String response) {
                 httpResponse = response;
-                isFirst = false;
+                isFirstRequestToGank = false;
                 handleResponse();
             }
 
@@ -200,8 +206,8 @@ public class PageFragment extends Fragment {
     }
 
     private void getImagesDataFromHttp(String url, HttpUtil.HttpUtilCallBack httpUtilCallBack) {
-        Log.d("test","load form http");
-        if(isFirst || TYPE != REQUEST_TO_GANK){
+
+        if(isFirstRequestToGank || TYPE != REQUEST_TO_GANK){
             HttpUtil.httpRequest(getActivity(), url,httpUtilCallBack);
         }
         else{
@@ -269,10 +275,11 @@ public class PageFragment extends Fragment {
         };
     }
 
+
     @Override
     public void onDestroy() {
         realm.close();
-        SharedPreferencesUtil.saveCurrentImagePosition(getActivity(), currentImagePosition,TYPE);
+        SharedPreferencesUtil.saveCurrentImagePosition(getActivity(), currentImagePosition, TYPE);
         super.onDestroy();
     }
 }
