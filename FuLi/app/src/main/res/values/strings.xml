@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">FuLi</string>
+    <string name="action_about">关于</string>
+    <string name="q_0">我是谁？</string>
+    <string name="a_0">在校学生，此app为我练手作品，有任何问题，都可以反馈给我，邮箱 threezj@hotmail.com</string>
+    <string name="q_1">图片来源？</string>
+    <string name="a_1">图片部分来自gank.io的api，和另外部分爬取了豆瓣的图片，如侵犯版权请联系我。</string>
+    <string name="q_2">使用到的开源库？</string>
+    <string name="vewsion">福利满满 1.0</string>
 </resources>

@@ -52,7 +52,6 @@ public class PageFragment extends Fragment {
     private int currentImagePosition;
     private Realm realm;
     private boolean isFirstRequestToGank = true;
-    private boolean isFirstRequestToHttp = true;
 
     private static final String TPEY_ARGS_KEY = "TYPE_KEY";
 
@@ -104,10 +103,9 @@ public class PageFragment extends Fragment {
                     swipeRefreshLayout.setRefreshing(true);
                 }
             });
-            if(isFirstRequestToHttp){
-                isFirstRequestToHttp = false;
-                preHttpRequest();
-            }
+
+            preHttpRequest();
+
 
         }
 
@@ -121,7 +119,6 @@ public class PageFragment extends Fragment {
             @Override
             public void onRefresh() {
                 Log.d("test", "onRefresh");
-                isFirstRequestToGank =true;
                 currentImagePosition = 0;
                 mPage = 1;
                 realm.beginTransaction();

@@ -1,6 +1,7 @@
 package com.threezj.fuli.activity;
 
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,6 +10,9 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.TypedValue;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.threezj.fuli.Fragment.PageFragment;
@@ -31,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         UmengUpdateAgent.update(this);
+
         mainViewPager = (ViewPager) findViewById(R.id.main_viewPager);
         mainViewPager.setOffscreenPageLimit(1);
         mainViewPager.setAdapter(new SampleFragmentPagerAdapter(getSupportFragmentManager()));
@@ -71,6 +76,25 @@ public class MainActivity extends AppCompatActivity {
             // Generate title based on item position
             return tabTitles[position];
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_activity_actions, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        //noinspection SimplifiableIfStatement
+        int id = item.getItemId();
+        if(id == R.id.action_about) {
+            Intent intent = new Intent(MainActivity.this,AboutActivity.class);
+            startActivity(intent);
+
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     public void onResume() {

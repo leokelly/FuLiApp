@@ -22,6 +22,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.ImageViewerActivity"></activity>
+        <activity android:name=".activity.AboutActivity"></activity>
 
         <service
             android:name="com.umeng.update.net.DownloadingService"
