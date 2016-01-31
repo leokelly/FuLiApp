@@ -15,10 +15,10 @@
 ## app效果
 
 
-![Demo Screenshot](https://github.com/threezj/FuLiApp/blob/master/pic/1.jpg)
+![Demo Screenshot](https://raw.githubusercontent.com/threezj/FuLiApp/master/pic/1.png)
 
-![Demo Screenshot](https://github.com/threezj/FuLiApp/blob/master/pic/2.jpg)
+![Demo Screenshot](https://raw.githubusercontent.com/threezj/FuLiApp/master/pic/2.png)
 
-![Demo Screenshot](https://github.com/threezj/FuLiApp/blob/master/pic/3.jpg)
+![Demo Screenshot](https://raw.githubusercontent.com/threezj/FuLiApp/master/pic/3.png)
 
-![Demo Screenshot](https://github.com/threezj/FuLiApp/blob/master/pic/4.jpg)
+![Demo Screenshot](https://raw.githubusercontent.com/threezj/FuLiApp/master/pic/4.png)
