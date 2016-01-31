@@ -49,7 +49,6 @@ public class PageFragment extends Fragment {
     private String httpResponse;
     private final int LOAD_IMAGE_COUNT = 1000;
     private final int ONCE_LOAD_NUMBER = 20;
-    private int currentImagePosition;
     private Realm realm;
     private boolean isFirstRequestToGank = true;
 
@@ -86,7 +85,6 @@ public class PageFragment extends Fragment {
         recyclerView = (RecyclerView)view.findViewById(R.id.content);
         swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresher);
         swipeRefreshLayout.setColorSchemeColors(R.color.colorPrimary);
-        currentImagePosition= SharedPreferencesUtil.getCurrentImagePosition(getActivity(), TYPE);
         mPage=SharedPreferencesUtil.getCurrentPage(getActivity(),TYPE);
         return view;
     }
@@ -106,8 +104,8 @@ public class PageFragment extends Fragment {
 
             preHttpRequest();
 
-
         }
+        else recyclerView.getAdapter().notifyDataSetChanged();
 
         recyclerView.addOnScrollListener(getOnBottomListener(gaggeredGridLayoutManager));
     }
@@ -119,10 +117,12 @@ public class PageFragment extends Fragment {
             @Override
             public void onRefresh() {
                 Log.d("test", "onRefresh");
-                currentImagePosition = 0;
+                isFirstRequestToGank = true;
                 mPage = 1;
+
                 realm.beginTransaction();
-                realm.clear(ImageFuli.class);
+                realm.where(ImageFuli.class)
+                        .equalTo("type",TYPE).findAll().clear();
                 realm.commitTransaction();
                 preHttpRequest();
             }
@@ -220,12 +220,10 @@ public class PageFragment extends Fragment {
                 try {
                     switch (TYPE){
                         case REQUEST_TO_GANK:
-                            ResponseHandleUtil.HandleGankResponseFromHttp(getActivity(),httpResponse,currentImagePosition,ONCE_LOAD_NUMBER,TYPE);
-                            currentImagePosition += ONCE_LOAD_NUMBER;
+                            ResponseHandleUtil.HandleGankResponseFromHttp(getActivity(),httpResponse,(mPage-1) * ONCE_LOAD_NUMBER,ONCE_LOAD_NUMBER,TYPE);
                             break;
                         default:
                             ResponseHandleUtil.HandleDoubanResponseFromHttp(getActivity(),httpResponse,TYPE);
-                            currentImagePosition = mPage * ONCE_LOAD_NUMBER;
                             break;
 
                     }
@@ -245,8 +243,8 @@ public class PageFragment extends Fragment {
                     public void run() {
 
                         //recyclerView.getAdapter().notifyDataSetChanged();
-                        if(currentImagePosition - ONCE_LOAD_NUMBER - 1>0)
-                            recyclerView.getAdapter().notifyItemRangeChanged(currentImagePosition - ONCE_LOAD_NUMBER - 1, ONCE_LOAD_NUMBER);
+                        if(mPage * ONCE_LOAD_NUMBER - ONCE_LOAD_NUMBER - 1>0)
+                            recyclerView.getAdapter().notifyItemRangeChanged(mPage * ONCE_LOAD_NUMBER - ONCE_LOAD_NUMBER - 1, ONCE_LOAD_NUMBER);
                         else
                             recyclerView.getAdapter().notifyDataSetChanged();
                         if (swipeRefreshLayout.isRefreshing()) {
@@ -277,7 +275,7 @@ public class PageFragment extends Fragment {
     @Override
     public void onDestroy() {
         realm.close();
-        SharedPreferencesUtil.saveCurrentImagePositionAndPage(getActivity(), currentImagePosition,mPage, TYPE);
+        SharedPreferencesUtil.saveCurrentImagePositionAndPage(getActivity(),mPage, TYPE);
         super.onDestroy();
     }
 }

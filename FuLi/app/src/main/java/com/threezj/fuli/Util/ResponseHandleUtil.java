@@ -49,7 +49,7 @@ public class ResponseHandleUtil {
         realm.close();
     }
 
-    public static void HandleDoubanResponseFromHttp(Context context, String httpResponse,int type) throws ExecutionException, InterruptedException {
+    public static void HandleDoubanResponseFromHttp(Context context, String httpResponse, int type) throws ExecutionException, InterruptedException {
         Log.d("http","http"+type);
         Realm realm = Realm.getInstance(context);
         realm.beginTransaction();//开启事务
