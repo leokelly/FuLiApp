@@ -225,7 +225,6 @@ public class PageFragment extends Fragment {
                         default:
                             ResponseHandleUtil.HandleDoubanResponseFromHttp(getActivity(),httpResponse,TYPE);
                             break;
-
                     }
 
                 } catch (ExecutionException | InterruptedException |JSONException e) {
@@ -233,7 +232,7 @@ public class PageFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(getActivity(), "加载失败！", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity(), "加载失败，请再次尝试", Toast.LENGTH_SHORT).show();
                         }
                     });
                 }

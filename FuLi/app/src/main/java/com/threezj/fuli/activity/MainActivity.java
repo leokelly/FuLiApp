@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         UmengUpdateAgent.update(this);
 
         mainViewPager = (ViewPager) findViewById(R.id.main_viewPager);
-        mainViewPager.setOffscreenPageLimit(1);
+        //mainViewPager.setOffscreenPageLimit(1);
         mainViewPager.setAdapter(new SampleFragmentPagerAdapter(getSupportFragmentManager()));
         pagerSlidingTabStrip = (PagerSlidingTabStrip) findViewById(R.id.tab_indicator);
         pagerSlidingTabStrip.setViewPager(mainViewPager);

@@ -3,7 +3,6 @@ package com.threezj.fuli.Util;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 /**
  * Created by Zj on 2016/1/24.
@@ -17,7 +16,6 @@ public class SharedPreferencesUtil {
     }
 
     public static void saveCurrentImagePositionAndPage(Context context,int page, int type){
-        Log.d("test", "save" + type);
 
         SharedPreferences.Editor editor = getSharePreferences(context).edit();
         editor.putInt(CURRENT_PAGE_KEY+type,page);
@@ -25,7 +23,7 @@ public class SharedPreferencesUtil {
     }
 
     public static int getCurrentPage(Context context,int type){
-        Log.d("test","get"+type);
+
         SharedPreferences prefs= getSharePreferences(context);
         int page = prefs.getInt(CURRENT_PAGE_KEY+type,1);
         return  page;
