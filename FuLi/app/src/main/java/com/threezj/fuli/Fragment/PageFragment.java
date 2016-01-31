@@ -44,7 +44,7 @@ public class PageFragment extends Fragment {
     private RealmResults<ImageFuli> images;
 
     private final int PRELOAD_SIZE = 6;
-    private int mPage = 1;
+    private int mPage;
 
     private String httpResponse;
     private final int LOAD_IMAGE_COUNT = 1000;
@@ -88,6 +88,7 @@ public class PageFragment extends Fragment {
         swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresher);
         swipeRefreshLayout.setColorSchemeColors(R.color.colorPrimary);
         currentImagePosition= SharedPreferencesUtil.getCurrentImagePosition(getActivity(), TYPE);
+        mPage=SharedPreferencesUtil.getCurrentPage(getActivity(),TYPE);
         return view;
     }
 
@@ -279,7 +280,7 @@ public class PageFragment extends Fragment {
     @Override
     public void onDestroy() {
         realm.close();
-        SharedPreferencesUtil.saveCurrentImagePosition(getActivity(), currentImagePosition, TYPE);
+        SharedPreferencesUtil.saveCurrentImagePositionAndPage(getActivity(), currentImagePosition,mPage, TYPE);
         super.onDestroy();
     }
 }

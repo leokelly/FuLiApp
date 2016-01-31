@@ -13,6 +13,8 @@ import android.util.TypedValue;
 import com.astuetz.PagerSlidingTabStrip;
 import com.threezj.fuli.Fragment.PageFragment;
 import com.threezj.fuli.R;
+import com.umeng.analytics.MobclickAgent;
+import com.umeng.update.UmengUpdateAgent;
 
 import java.util.ArrayList;
 
@@ -28,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        UmengUpdateAgent.update(this);
         mainViewPager = (ViewPager) findViewById(R.id.main_viewPager);
         mainViewPager.setOffscreenPageLimit(1);
         mainViewPager.setAdapter(new SampleFragmentPagerAdapter(getSupportFragmentManager()));
@@ -69,5 +71,14 @@ public class MainActivity extends AppCompatActivity {
             // Generate title based on item position
             return tabTitles[position];
         }
+    }
+
+    public void onResume() {
+        super.onResume();
+        MobclickAgent.onResume(this);
+    }
+    public void onPause() {
+        super.onPause();
+        MobclickAgent.onPause(this);
     }
 }

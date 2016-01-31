@@ -10,6 +10,7 @@ import com.threezj.fuli.Fragment.ImageViewerFragment;
 import com.threezj.fuli.R;
 import com.threezj.fuli.model.ImageFuli;
 import com.threezj.fuli.widget.ExtendedViewPager;
+import com.umeng.analytics.MobclickAgent;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -44,8 +45,12 @@ public class ImageViewerActivity extends AppCompatActivity  {
     protected void onResume() {
         super.onResume();
         mViewPager.setCurrentItem(currentIndex);
+        MobclickAgent.onResume(this);
     }
-
+    public void onPause() {
+        super.onPause();
+        MobclickAgent.onPause(this);
+    }
 
     private class PagerAdapter extends FragmentStatePagerAdapter {
 
@@ -65,4 +70,6 @@ public class ImageViewerActivity extends AppCompatActivity  {
         }
 
     }
+
+
 }
